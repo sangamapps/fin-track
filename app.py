@@ -1,4 +1,5 @@
-from flask import Flask, render_template, send_from_directory, request
+from flask import Flask, render_template, send_from_directory, request, redirect
+from os import environ
 import extractor as Extractor
 
 app = Flask(__name__)
@@ -6,6 +7,8 @@ app = Flask(__name__)
 
 @app.route("/assets/<path:filename>")
 def serve_static(filename):
+    if int(environ.get("DEBUG", 0)) == 0:
+        return redirect("https://sangamapps.github.io/fin-track-cdn/assets/" + filename)
     return send_from_directory("fin-track-ui/assets/", filename)
 
 
@@ -28,6 +31,4 @@ def extract_transactions():
 
 
 if __name__ == "__main__":
-    from os import environ
-
-    app.run(host="0.0.0.0", port=int(environ.get("PORT", 8080)))
+    app.run(host="0.0.0.0", port=int(environ.get("PORT", 8080)), debug=int(environ.get("DEBUG", 0)))
