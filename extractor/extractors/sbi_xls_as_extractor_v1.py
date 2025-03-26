@@ -27,7 +27,6 @@ class SbiXlsAccountStatementExtractorV1:
                 continue
             if (END_PATTERN in json.dumps(row)):
                 break
-            print(row)
             transaction = {}
             for i in range(len(columns)):
                 transaction[columns[i]] = row[i]
