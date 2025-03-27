@@ -10,6 +10,8 @@ def convert_to_generic_column_name(column_name):
     return COLUMN_NAME_MAP[column_name] if column_name in COLUMN_NAME_MAP else None
 
 def convert_to_float(column_value):
+    if type(column_value) in [int, float]:
+        return column_value
     if column_value is None or column_value.strip() == "":
         return 0.0
     column_value = column_value.replace(",", "")
