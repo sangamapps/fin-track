@@ -3,3 +3,7 @@ gunicorn
 pandas
 xlrd
 pdfplumber
+google-auth
+google-auth-oauthlib
+google-auth-httplib2
+flask_session
