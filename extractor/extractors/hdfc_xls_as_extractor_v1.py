@@ -35,5 +35,6 @@ class HdfcXlsAccountStatementExtractorV1:
             transaction = {}
             for i in range(len(columns)):
                 transaction[columns[i]] = row[i]
+            transaction["Date"] = datetime.strptime(transaction["Date"], "%d/%m/%y").strftime("%d-%m-%Y")
             transactions.append(transaction)
         return transactions

@@ -30,5 +30,6 @@ class SbiXlsAccountStatementExtractorV1:
             transaction = {}
             for i in range(len(columns)):
                 transaction[columns[i]] = row[i]
+            transaction["Txn Date"] = datetime.strptime(transaction["Txn Date"], "%d %b %Y").strftime("%d-%m-%Y")
             transactions.append(transaction)
         return transactions
