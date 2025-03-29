@@ -2,7 +2,7 @@ from flask import Blueprint, request, session
 from google.oauth2 import id_token
 from google.auth.transport import requests
 
-user_routes_bp = Blueprint('auth', __name__)
+user_routes_bp = Blueprint('user_routes', __name__)
 
 GOOGLE_CLIENT_ID = "681626859343-dtkml0ds42u48qg1q5nr07kevma99tfk.apps.googleusercontent.com"
 
