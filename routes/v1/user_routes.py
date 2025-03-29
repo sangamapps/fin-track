@@ -2,7 +2,7 @@ from flask import Blueprint, request, session
 from google.oauth2 import id_token
 from google.auth.transport import requests
 
-user_bp = Blueprint('auth', __name__)
+user_routes_bp = Blueprint('auth', __name__)
 
 GOOGLE_CLIENT_ID = "681626859343-dtkml0ds42u48qg1q5nr07kevma99tfk.apps.googleusercontent.com"
 
@@ -13,7 +13,7 @@ def verify_google_token(token):
     except ValueError:
         return None
 
-@user_bp.route('/user/login', methods=['POST'])
+@user_routes_bp.route('/user/login', methods=['POST'])
 def login():
     data = request.json
     token = data.get('token')
@@ -38,7 +38,7 @@ def login():
         "user": session['user']
     }
 
-@user_bp.route('/user/logout', methods=['POST'])
+@user_routes_bp.route('/user/logout', methods=['POST'])
 def logout():
     session.pop('user', None)
     return {"success": True, "message": "Logged out successfully"}

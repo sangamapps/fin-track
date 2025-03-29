@@ -37,7 +37,7 @@ def rename_columns(transactions):
             generic_column_name = convert_to_generic_column_name(column_name)
             if not generic_column_name:
                 continue
-            processed_transaction[generic_column_name.name] = process_column_value(generic_column_name, transaction[column_name])
+            processed_transaction[generic_column_name.value] = process_column_value(generic_column_name, transaction[column_name])
         processed_transactions.append(processed_transaction)
     return processed_transactions
 

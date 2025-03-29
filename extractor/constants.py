@@ -28,11 +28,11 @@ EXTRACTORS_MAP = {
 }
 
 class GenericColumnNames(Enum):
-    DATE = "Date"
-    DESCRIPTION = "Description"
-    DEBIT = "Debit"
-    CREDIT = "Credit"
-    BALANCE = "Balance"
+    DATE = "date"
+    DESCRIPTION = "description"
+    DEBIT = "debit"
+    CREDIT = "credit"
+    BALANCE = "balance"
 
 COLUMN_NAME_MAP = {
     # HDFC AS
