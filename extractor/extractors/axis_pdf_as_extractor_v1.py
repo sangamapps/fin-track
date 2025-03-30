@@ -36,5 +36,5 @@ class AxisPdfAccountStatementExtractorV1:
             for i in range(len(columns)):
                 transaction[columns[i]] = row[i]
             transactions.append(transaction)
-            transaction["Date"] = datetime.strptime(transaction["Date"], "%d-%m-%y").strftime("%Y-%m-%d")
+            transaction["Date"] = datetime.strptime(transaction["Tran Date"], "%d-%m-%Y").strftime("%Y-%m-%d")
         return transactions
