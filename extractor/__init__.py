@@ -49,7 +49,5 @@ def rename_columns(transactions):
             )
         processed_transaction["transactionType"] = "CREDIT" if processed_transaction["credit"] > 0 else "DEBIT"
         processed_transaction["amount"] = processed_transaction["credit"] if processed_transaction["credit"] > 0 else processed_transaction["debit"]
-        processed_transaction["appliedRules"] = {}
-        processed_transaction["comments"] = ""
         processed_transactions.append(processed_transaction)
     return processed_transactions
