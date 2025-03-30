@@ -6,3 +6,4 @@ client = MongoClient(MONGO_DB_URL)
 db = client[MONGO_DB_NAME]
 accounts_collection = db["accounts"]
 rules_collection = db["rules"]
+transactions_collection = db["transactions"]
