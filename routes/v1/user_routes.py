@@ -1,6 +1,8 @@
 from flask import Blueprint, request, session
 from google.oauth2 import id_token
 from google.auth.transport import requests
+from model.mongodb import users_collection, ObjectId
+from datetime import datetime, timezone
 
 user_routes_bp = Blueprint('user_routes', __name__)
 
@@ -19,26 +21,42 @@ def login():
     token = data.get('token')
 
     if not token:
-        return {"error": "Token is missing"}, 400
+        return {"message": "Token is missing"}, 400
 
     user_data = verify_google_token(token)
     print(user_data)
 
     if not user_data:
-        return {"error": "Invalid Token"}, 401
+        return {"message": "Invalid Token"}, 401
     
-    session['user'] = {
+    user_email = user_data.get("email")
+    
+    userSession = {
         "name": user_data.get("name"),
-        "email": user_data.get("email"),
+        "email": user_email,
         "picture": user_data.get("picture"),
     }
 
-    return {
-        "success": True,
-        "user": session['user']
-    }
+    user = users_collection.find_one({"email": user_email})
+    if not user:
+        new_record = {
+            "email": user_email,
+            "family": {},
+            "createdAt": datetime.now(timezone.utc).isoformat(),
+            "updatedAt": datetime.now(timezone.utc).isoformat(),
+        }
+        userId = users_collection.insert_one(new_record).inserted_id
+        userSession = userSession | new_record
+        userSession["_id"] = str(userId)
+    else:
+        userSession = userSession | user
+        userSession["_id"] = str(userSession["_id"])
+
+    session["user"] = userSession
+
+    return { "user": userSession}
 
 @user_routes_bp.route('/user/logout', methods=['POST'])
 def logout():
     session.pop('user', None)
-    return {"success": True, "message": "Logged out successfully"}
+    return {"success": True}

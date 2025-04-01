@@ -5,6 +5,7 @@ def extract(extractor, file):
     extractor_obj = EXTRACTORS_MAP[extractor]
     json_data = extractor_obj.reader.get_json_data(file)
     transactions = extractor_obj.extractor.get_transactions(json_data)
+    transactions = rename_columns(transactions)
     return transactions
 
 

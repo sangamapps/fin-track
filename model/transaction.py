@@ -1,7 +1,9 @@
 class Transaction:
     KEY_ID = "_id"
+    KEY_USER_ID = "userId"
     KEY_DATE = "date"
-    KEY_ACCOUNT = "account"
+    KEY_IS_DRAFT = "isDraft"
+    KEY_ACCOUNT_ID = "accountId"
     KEY_DESCRIPTION = "description"
     KEY_TRANSACTION_TYPE = "transactionType"
     KEY_AMOUNT = "amount"
@@ -12,8 +14,10 @@ class Transaction:
 
     def __init__(self, record: dict):
         self._id = record.get(self.KEY_ID, "")
+        self.userId = record.get(self.KEY_USER_ID, "")
         self.date = record.get(self.KEY_DATE, "")
-        self.account = record.get(self.KEY_ACCOUNT, "")
+        self.isDraft = record.get(self.KEY_IS_DRAFT, False)
+        self.accountId = record.get(self.KEY_ACCOUNT_ID, "")
         self.description = record.get(self.KEY_DESCRIPTION, "")
         self.transactionType = record.get(self.KEY_TRANSACTION_TYPE, "")
         self.amount = record.get(self.KEY_AMOUNT, 0)
@@ -25,8 +29,10 @@ class Transaction:
     def json(self) -> dict:
         return {
             self.KEY_ID: self._id,
+            self.KEY_USER_ID: self.userId,
             self.KEY_DATE: self.date,
-            self.KEY_ACCOUNT: self.account,
+            self.KEY_IS_DRAFT: self.isDraft,
+            self.KEY_ACCOUNT_ID: self.accountId,
             self.KEY_DESCRIPTION: self.description,
             self.KEY_TRANSACTION_TYPE: self.transactionType,
             self.KEY_AMOUNT: self.amount,
