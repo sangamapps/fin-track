@@ -24,10 +24,16 @@ def extract_transactions():
     transactions_collection.insert_many(transactions)
     return {"transactionsCount": len(transactions)}
 
-@transaction_routes_bp.route("/transactions/save", methods=["POST"])
-def save_transactions():
+@transaction_routes_bp.route("/transactions/save-drafts", methods=["POST"])
+def save_drafts():
     userId = session["user"]["_id"]
     transactions_collection.update_many({Transaction.KEY_USER_ID:userId, Transaction.KEY_IS_DRAFT:True},{"$set":{Transaction.KEY_IS_DRAFT:False}})
+    return {"success": True}
+
+@transaction_routes_bp.route("/transactions/delete-drafts", methods=["POST"])
+def delete_drafts():
+    userId = session["user"]["_id"]
+    transactions_collection.delete_many({Transaction.KEY_USER_ID:userId, Transaction.KEY_IS_DRAFT:True})
     return {"success": True}
 
 @transaction_routes_bp.route("/transactions", methods=["GET"])
