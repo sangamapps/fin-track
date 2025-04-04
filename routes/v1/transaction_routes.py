@@ -50,7 +50,7 @@ def get_transactions():
         dateFilter["$lte"] = endDate
     if dateFilter:
         query.update({Transaction.KEY_DATE: dateFilter})
-    transactions = list(transactions_collection.find(query))
+    transactions = list(transactions_collection.find(query).sort({"date":1,"_id":1}))
     mTransactions = []
     for transaction in transactions:
         mTransaction = Transaction(transaction)
