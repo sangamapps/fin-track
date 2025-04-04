@@ -7,6 +7,7 @@ class Transaction:
     KEY_DESCRIPTION = "description"
     KEY_TRANSACTION_TYPE = "transactionType"
     KEY_AMOUNT = "amount"
+    KEY_BALANCE = "balance"
     KEY_APPLIED_RULES = "appliedRules"
     KEY_COMMENTS = "comments"
     KEY_CREATED_AT = "createdAt"
@@ -21,6 +22,7 @@ class Transaction:
         self.description = record.get(self.KEY_DESCRIPTION, "")
         self.transactionType = record.get(self.KEY_TRANSACTION_TYPE, "")
         self.amount = record.get(self.KEY_AMOUNT, 0)
+        self.balance = record.get(self.KEY_BALANCE, 0)
         self.appliedRules = record.get(self.KEY_APPLIED_RULES, {})
         self.comments = record.get(self.KEY_COMMENTS, "")
         self.createdAt = record.get(self.KEY_CREATED_AT, "")
@@ -36,6 +38,7 @@ class Transaction:
             self.KEY_DESCRIPTION: self.description,
             self.KEY_TRANSACTION_TYPE: self.transactionType,
             self.KEY_AMOUNT: self.amount,
+            self.KEY_BALANCE: self.balance,
             self.KEY_APPLIED_RULES: self.appliedRules,
             self.KEY_COMMENTS: self.comments,
             self.KEY_CREATED_AT: self.createdAt,
