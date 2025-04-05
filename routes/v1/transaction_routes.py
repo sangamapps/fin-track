@@ -41,6 +41,7 @@ def get_transactions():
     userId = session["user"]["_id"]
     startDate = request.args.get("startDate")
     endDate = request.args.get("endDate")
+    sortByDate = int(request.args.get("sortByDate"))
     isDraft = True if request.args.get("isDraft") == "true" else False
     query = {Transaction.KEY_USER_ID:userId, Transaction.KEY_IS_DRAFT: isDraft}
     dateFilter = {}
@@ -50,7 +51,7 @@ def get_transactions():
         dateFilter["$lte"] = endDate
     if dateFilter:
         query.update({Transaction.KEY_DATE: dateFilter})
-    transactions = list(transactions_collection.find(query).sort({"date":1,"_id":1}))
+    transactions = list(transactions_collection.find(query).sort({"date":sortByDate,"_id":1}))
     mTransactions = []
     for transaction in transactions:
         mTransaction = Transaction(transaction)
