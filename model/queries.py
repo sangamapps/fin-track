@@ -4,7 +4,16 @@ ACCOUNTS_LOOKUP_QUERY = {
         "let": {"accountId": "$_id"},
         "pipeline": [
             {"$addFields": {"accountObjectId": {"$toObjectId": "$accountId"}}},
-            {"$match": {"$expr": {"$eq": ["$accountObjectId", "$$accountId"]}}},
+            {
+                "$match": {
+                    "$expr": {
+                        "$and": [
+                            {"$eq": ["$accountObjectId", "$$accountId"]},
+                            { "$eq": ["$isDraft", False] },
+                        ]
+                    }
+                }
+            },
         ],
         "as": "transactions",
     }
