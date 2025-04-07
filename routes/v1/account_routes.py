@@ -1,5 +1,6 @@
 from flask import Blueprint, request, session
 from model.mongodb import accounts_collection, ObjectId
+from model.queries import ACCOUNTS_LOOKUP_QUERY, ACCOUNTS_AGGREGATE_QUERY, ACCOUNTS_ADD_FIELDS_QUERY
 
 account_routes_bp = Blueprint("account_routes", __name__)
 
@@ -7,7 +8,14 @@ account_routes_bp = Blueprint("account_routes", __name__)
 @account_routes_bp.route("/accounts", methods=["GET"])
 def get_accounts():
     userId = session["user"]["_id"]
-    accounts = list(accounts_collection.find({"userId": userId}))
+    query_pipeline = [
+        {"$match": {"userId": userId}},
+        ACCOUNTS_LOOKUP_QUERY,
+        ACCOUNTS_AGGREGATE_QUERY,
+        ACCOUNTS_ADD_FIELDS_QUERY,
+        {"$project":{"transactions":0}}
+    ]
+    accounts = list(accounts_collection.aggregate(query_pipeline))
     for account in accounts:
         account["_id"] = str(account["_id"])
     return {"accounts": accounts}
