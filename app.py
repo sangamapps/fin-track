@@ -15,7 +15,7 @@ app.register_blueprint(v1_routes_bp)
 
 @app.route("/assets/<path:filename>")
 def serve_static(filename):
-    if int(environ.get("DEBUG", 0)) == 0:
+    if environ.get("ASSETS") == "PROD":
         return redirect("https://sangamapps.github.io/fin-track-cdn/assets/" + filename)
     return send_from_directory("fin-track-ui/assets/", filename)
 

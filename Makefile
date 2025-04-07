@@ -5,7 +5,7 @@ dev:
 	DEBUG=1 python app.py
 
 start:
-	gunicorn app:app
+	ASSETS="PROD" ENV="PROD" gunicorn app:app
 
 webpack:
 	cd fin-track-ui && npm start
