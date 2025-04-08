@@ -1,6 +1,10 @@
 from bson import ObjectId
 from datetime import datetime, timezone
+from enum import Enum
 
+class TransactionType(Enum):
+    DEBIT = "DEBIT"
+    CREDIT = "CREDIT"
 
 class Transaction:
     KEY_ID = "_id"
@@ -11,6 +15,7 @@ class Transaction:
     KEY_DESCRIPTION = "description"
     KEY_TYPE = "type"
     KEY_AMOUNT = "amount"
+    KEY_EXCLUDE_FROM_TOTALS = "excludeFromTotals"
     KEY_BALANCE = "balance"
     KEY_APPLIED_RULES = "appliedRules"
     KEY_COMMENTS = "comments"
@@ -26,6 +31,7 @@ class Transaction:
         self.description = record.get(self.KEY_DESCRIPTION)
         self.type = record.get(self.KEY_TYPE)
         self.amount = record.get(self.KEY_AMOUNT)
+        self.excludeFromTotals = record.get(self.KEY_EXCLUDE_FROM_TOTALS)
         self.balance = record.get(self.KEY_BALANCE, 0)
         self.appliedRules = record.get(self.KEY_APPLIED_RULES)
         self.comments = record.get(self.KEY_COMMENTS)
@@ -72,12 +78,18 @@ class Transaction:
             raise Exception("type must be a string")
         if self.type == "":
             raise Exception("type is required")
+        if self.type not in [TransactionType.CREDIT.value, TransactionType.DEBIT.value]:
+                raise Exception("type must be either DEBIT or CREDIT")
 
         # validate amount
         if not isinstance(self.amount, int) and not isinstance(self.amount, float):
             raise Exception("amount must be a number")
         if self.amount == 0:
             raise Exception("amount is required")
+        
+        # validate excludeFromTotals
+        if not isinstance(self.excludeFromTotals, int):
+            raise Exception("excludeFromTotals must be a number")
 
         # validate balance
         if not isinstance(self.balance, int) and not isinstance(self.balance, float):
@@ -100,6 +112,7 @@ class Transaction:
             self.KEY_DESCRIPTION: self.description,
             self.KEY_TYPE: self.type,
             self.KEY_AMOUNT: self.amount,
+            self.KEY_EXCLUDE_FROM_TOTALS: self.excludeFromTotals,
             self.KEY_BALANCE: self.balance,
             self.KEY_APPLIED_RULES: self.appliedRules,
             self.KEY_COMMENTS: self.comments,
@@ -115,6 +128,7 @@ class Transaction:
             self.KEY_DESCRIPTION: self.description,
             self.KEY_TYPE: self.type,
             self.KEY_AMOUNT: self.amount,
+            self.KEY_EXCLUDE_FROM_TOTALS: self.excludeFromTotals,
             self.KEY_BALANCE: self.balance,
             self.KEY_APPLIED_RULES: self.appliedRules,
             self.KEY_COMMENTS: self.comments,
