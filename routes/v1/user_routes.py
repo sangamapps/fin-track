@@ -24,7 +24,6 @@ def login():
         return {"message": "Token is missing"}, 400
 
     user_data = verify_google_token(token)
-    print(user_data)
 
     if not user_data:
         return {"message": "Invalid Token"}, 401

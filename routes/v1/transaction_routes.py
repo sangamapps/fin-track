@@ -1,40 +1,43 @@
 from flask import Blueprint, request, session
-from model.mongodb import transactions_collection, ObjectId
-from model.transaction import Transaction
-from datetime import datetime, timezone
+from bson import ObjectId
+from model.mongodb import transactions_collection
+from model.transaction import Transaction, CreateTransaction, UpdateTransaction
 import extractor as Extractor
 
-transaction_routes_bp = Blueprint('extractor', __name__)
+transaction_routes_bp = Blueprint("extractor", __name__)
+
 
 @transaction_routes_bp.route("/transactions/extract", methods=["POST"])
 def extract_transactions():
     userId = session["user"]["_id"]
     accountId = request.form[Transaction.KEY_ACCOUNT_ID]
+    extracted_transactions = Extractor.extract(request.form["extractor"], request.files["file"])
     transactions = []
-    for transaction in Extractor.extract(request.form["extractor"], request.files["file"]):
-        mTransaction = Transaction(transaction)
-        mTransaction.userId = userId
-        mTransaction.accountId = accountId
-        mTransaction.isDraft = True
-        mTransaction.createdAt = datetime.now(timezone.utc)
-        mTransaction.updatedAt = datetime.now(timezone.utc)
-        transaction = mTransaction.json()
-        transaction.pop(Transaction.KEY_ID)
-        transactions.append(transaction)
+    for extracted_transaction in extracted_transactions:
+        extracted_transaction[Transaction.KEY_USER_ID] = userId
+        extracted_transaction[Transaction.KEY_ACCOUNT_ID] = accountId
+        extracted_transaction[Transaction.KEY_IS_DRAFT] = 1
+        create_transaction = CreateTransaction(extracted_transaction)
+        transactions.append(create_transaction.json())
     transactions_collection.insert_many(transactions)
     return {"transactionsCount": len(transactions)}
+
 
 @transaction_routes_bp.route("/transactions/save-drafts", methods=["POST"])
 def save_drafts():
     userId = session["user"]["_id"]
-    transactions_collection.update_many({Transaction.KEY_USER_ID:userId, Transaction.KEY_IS_DRAFT:True},{"$set":{Transaction.KEY_IS_DRAFT:False}})
+    query = {Transaction.KEY_USER_ID: ObjectId(userId), Transaction.KEY_IS_DRAFT: 1}
+    transactions_collection.update_many(query, {"$set": {Transaction.KEY_IS_DRAFT: 0}})
     return {"success": True}
+
 
 @transaction_routes_bp.route("/transactions/delete-drafts", methods=["POST"])
 def delete_drafts():
     userId = session["user"]["_id"]
-    transactions_collection.delete_many({Transaction.KEY_USER_ID:userId, Transaction.KEY_IS_DRAFT:True})
+    query = {Transaction.KEY_USER_ID: ObjectId(userId), Transaction.KEY_IS_DRAFT: 1}
+    transactions_collection.delete_many(query)
     return {"success": True}
+
 
 @transaction_routes_bp.route("/transactions", methods=["GET"])
 def get_transactions():
@@ -42,8 +45,11 @@ def get_transactions():
     startDate = request.args.get("startDate")
     endDate = request.args.get("endDate")
     sortByDate = int(request.args.get("sortByDate"))
-    isDraft = True if request.args.get("isDraft") == "true" else False
-    query = {Transaction.KEY_USER_ID:userId, Transaction.KEY_IS_DRAFT: isDraft}
+    isDraft = int(request.args.get("isDraft"))
+    query = {
+        Transaction.KEY_USER_ID: ObjectId(userId),
+        Transaction.KEY_IS_DRAFT: isDraft,
+    }
     dateFilter = {}
     if startDate:
         dateFilter["$gte"] = startDate
@@ -51,39 +57,43 @@ def get_transactions():
         dateFilter["$lte"] = endDate
     if dateFilter:
         query.update({Transaction.KEY_DATE: dateFilter})
-    transactions = list(transactions_collection.find(query).sort({"date":sortByDate,"_id":1}))
-    mTransactions = []
-    for transaction in transactions:
-        mTransaction = Transaction(transaction)
-        mTransaction._id = str(mTransaction._id)
-        transaction = mTransaction.json()
-        mTransactions.append(mTransaction.json())
-    return {"transactions": mTransactions}
+    sortQuery = {Transaction.KEY_DATE: sortByDate, Transaction.KEY_DATE: 1}
+    result = transactions_collection.find(query).sort(sortQuery)
+    transactions = [Transaction(transaction).jsonResponse() for transaction in list(result)]
+    return {"transactions": transactions}
+
 
 @transaction_routes_bp.route("/transaction", methods=["POST"])
 def upsert_transaction():
     userId = session["user"]["_id"]
-    data = request.get_json()
-    mTransaction = Transaction(data)
-    mTransaction.updatedAt = datetime.now(timezone.utc)
-    transaction = mTransaction.json()
-    _id = transaction.pop(Transaction.KEY_ID)
+    transaction = request.get_json()
+    _id = transaction[Transaction.KEY_ID] if Transaction.KEY_ID in transaction else ""
     if _id != "":
-        query = {Transaction.KEY_USER_ID:userId, Transaction.KEY_ID: ObjectId(_id)}
-        result = transactions_collection.update_one(query, {"$set": transaction})
-        transaction[Transaction.KEY_ID] = _id
+        transaction[Transaction.KEY_USER_ID] = userId
+        update_transaction = UpdateTransaction(transaction)
+        query = {
+            Transaction.KEY_USER_ID: update_transaction.userId,
+            Transaction.KEY_ID: update_transaction._id,
+        }
+        result = transactions_collection.update_one(query, {"$set": update_transaction.json()})
+        transaction = update_transaction.jsonResponse()
     else:
         transaction[Transaction.KEY_USER_ID] = userId
-        transaction[Transaction.KEY_CREATED_AT] = datetime.now(timezone.utc)
-        result = transactions_collection.insert_one(transaction)
-        transaction[Transaction.KEY_ID] = str(result.inserted_id)
-    return { "transaction": transaction}
+        create_transaction = CreateTransaction(transaction)
+        result = transactions_collection.insert_one(create_transaction.json())
+        create_transaction._id = result.inserted_id
+        transaction = create_transaction.jsonResponse()
+    return {"transaction": transaction}
 
 
 @transaction_routes_bp.route("/transaction/<_id>", methods=["DELETE"])
 def delete_transaction(_id):
     userId = session["user"]["_id"]
-    result = transactions_collection.delete_one({Transaction.KEY_ID: ObjectId(_id)})
+    query = {
+        Transaction.KEY_USER_ID: ObjectId(userId),
+        Transaction.KEY_ID: ObjectId(_id),
+    }
+    result = transactions_collection.delete_one(query)
     if result.deleted_count == 0:
-        return {"success":False,"message": "Transaction not found"}, 404
-    return {"success": True, "_id": _id}
+        return {"success": False, "message": "Transaction not found"}, 404
+    return {"success": True, Transaction.KEY_ID: _id}
